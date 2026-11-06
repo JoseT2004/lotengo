@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>¡Lo tengo!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0fdf4;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%2386efac' fill-opacity='0.3' fill-rule='evenodd'/%3E%3C/svg%3E");
+            font-family: 'Kalam', cursive;
+            color: #1a202c;
+        }
+        .scrap-card {
+            background: #fff;
+            box-shadow: 2px 4px 10px rgba(0,0,0,0.1), 0 0 0 10px #fff;
+            position: relative;
+            transition: transform 0.2s ease;
+            cursor: pointer;
+        }
+        .scrap-card:not(.card-locked):hover {
+            transform: scale(1.05) rotate(1deg) !important;
+            box-shadow: 4px 8px 15px rgba(0,0,0,0.15), 0 0 0 10px #fff;
+            z-index: 10;
+        }
+        .tape {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-2deg);
+            width: 80px;
+            height: 25px;
+            background-color: rgba(255, 255, 255, 0.4);
+            background-image: linear-gradient(to right, rgba(255,255,255,0.1), rgba(200,200,200,0.3));
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            z-index: 5;
+            backdrop-filter: blur(2px);
+            border-radius: 2px;
+        }
+        .tape-green { background-color: rgba(72, 187, 120, 0.5); }
+        .tape-black { background-color: rgba(26, 32, 44, 0.4); }
+        .tape-white { background-color: rgba(255, 255, 255, 0.7); }
+        .handwritten { font-family: 'Caveat', cursive; }
+        .tile-black { background-color: #2d3748; color: white; border: 3px solid #1a202c; }
+        .tile-white { background-color: #f7fafc; color: #2d3748; border: 3px solid #cbd5e0; }
+        .tile-green { background-color: #48bb78; color: white; border: 3px solid #2f855a; }
+        /* Animaciones de cartas (cortas) */
+        @keyframes cardOut { from { opacity: 1; translate: 0 0; scale: 1; } to { opacity: 0; translate: 0 40px; scale: 0.8; } }
+        @keyframes cardIn { from { opacity: 0; translate: 0 -30px; scale: 0.85; } to { opacity: 1; translate: 0 0; scale: 1; } }
+        .card-ghost { animation: cardOut 0.22s ease-in forwards; pointer-events: none; z-index: 20; }
+        .card-new { animation: cardIn 0.25s ease-out 0.12s backwards; }
+        .card-locked { opacity: 0.6; cursor: not-allowed; }
+        #modal-overlay { display: none; backdrop-filter: blur(3px); }
+        #modal-overlay.active { display: flex; }
+    
+        /* ===== Nuevas ventanas y menú ===== */
+        .key { min-height: 56px; border: 2px solid #1a202c; border-radius: 12px; background: #fff; color: #1a202c; font-weight: 700; font-size: 1.7rem; font-family: 'Caveat', cursive; box-shadow: 2px 3px 0 rgba(0,0,0,.25); cursor: pointer; transition: transform .1s; padding: 0 12px; }
+        .key:active { transform: translateY(2px); box-shadow: none; }
+        .key:disabled { opacity: .35; cursor: not-allowed; }
+        .key-ok { background: #16a34a; color: #fff; border-color: #14532d; }
+        .key-erase { background: #fee2e2; }
+        .key-add { background: #fef9c3; }
+        .key-on { background: #1a202c; color: #fff; }
+        .key-dim { opacity: .35; }
+        .answer-box { min-height: 68px; background: #f0fdf4; border: 4px dashed #15803d; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Caveat', cursive; font-weight: 700; font-size: 2.6rem; padding: 4px 8px; flex-wrap: wrap; }
+        .slot-sel { outline: 4px solid #facc15; outline-offset: 2px; }
+        .mode-btn { cursor: pointer; transition: transform .15s; }
+        .mode-btn:hover { transform: translateY(-2px) rotate(-.5deg); }
+        @keyframes shake { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
+        .shake { animation: shake .4s; }
+        @keyframes popIn { from { opacity: 0; transform: translateY(-14px) scale(.96); } to { opacity: 1; transform: none; } }
+        .popup-card { animation: popIn .2s ease-out; }
+        </style>
+</head>
+<body class="min-h-screen p-2 sm:p-6 pb-20">
+
+    <div id="app" class="max-w-5xl mx-auto"></div>
+    <div id="modal-root"></div>
+    <div id="history-root"></div>
+    <div id="popup-root"></div>
+
+<script type="module">
+    const firebaseConfig = {
+        apiKey: "AIzaSyBUG34Hb-3oDmW3P0hsH38ff5sAKJpiHi0",
+        authDomain: "i-got-it-2.firebaseapp.com",
+        projectId: "i-got-it-2",
+        storageBucket: "i-got-it-2.firebasestorage.app",
+        messagingSenderId: "584701134806",
+        appId: "1:584701134806:web:c62de8699656ac264c8677"
+    };
+    const isConfigured = firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith("PEGA_AQUI");
+
+    // =====================================================================
+    // UTILIDADES
+    // =====================================================================
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const rand = (n) => Math.floor(Math.random() * n);
+    const other = (r) => (r === 1 ? 2 : 1);
+    const uid4 = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+    const LETTERS = ['A', 'B', 'C', 'D', 'E'];
+
+    function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+    const cleanNick = (s) => String(s || '').replace(/[^\p{L}\p{N} _-]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 12);
+    const cleanCode = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+    const store = {
+        get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+        set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+        del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+    };
+    function joinY(arr) { return arr.length <= 1 ? (arr[0] || '') : arr.slice(0, -1).join(', ') + ' y ' + arr[arr.length - 1]; }
+
+    function toast(text) {
+        const el = document.createElement('div');
+        el.textContent = text;
+        el.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-black text-white font-bold px-5 py-2 rounded-full shadow-lg text-center';
+        el.style.zIndex = '200';
+        el.style.maxWidth = '92vw';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 2600);
+    }
+
+    // =====================================================================
+    // FICHAS Y CARTAS
+    // =====================================================================
+    const ALL_TILES = (() => {
+        const a = [];
+        for (let i = 0; i <= 9; i++) {
+            if (i === 5) { a.push({ num: 5, color: 'green' }, { num: 5, color: 'green' }); }
+            else { a.push({ num: i, color: 'black' }, { num: i, color: 'white' }); }
+        }
+        return a;
+    })();
+
+    // Mayor a menor de izquierda a derecha: número ascendente; si se repite, la negra a la izquierda
+    const sortTiles = (a, b) => {
+        if (a.num !== b.num) return a.num - b.num;
+        if (a.color === 'black' && b.color !== 'black') return -1;
+        if (b.color === 'black' && a.color !== 'black') return 1;
+        return 0;
+    };
+    const tilesEqual = (a, b) => a && b && a.length === 5 && b.length === 5 && a.every((t, i) => t.num === b[i].num && t.color === b[i].color);
+    const handKey = (h) => h.map(t => t.num + t.color[0]).join(',');
+
+    // Grupos de fichas vecinas que cumplen "adj" (mínimo 2). Devuelve "AB|CDE"
+    function runs(h, adj) {
+        const groups = [];
+        let cur = [0];
+        for (let i = 1; i < h.length; i++) {
+            if (adj(h[i - 1], h[i])) cur.push(i);
+            else { if (cur.length >= 2) groups.push(cur); cur = [i]; }
+        }
+        if (cur.length >= 2) groups.push(cur);
+        return groups.map(g => g.map(i => LETTERS[i]).join('')).join('|');
+    }
+    const sumAt = (h, idx) => idx.reduce((s, i) => s + h[i].num, 0);
+    const sumColor = (h, c) => h.filter(x => x.color === c).reduce((s, x) => s + x.num, 0);
+
+    // k: num (número) | pos (posiciones) | grp (grupos de posiciones) | yn (sí/no)
+    const CARDS = {
+        c01: { t: '¿Cuántas de tus fichas son impares?', k: 'num', f: h => h.filter(x => x.num % 2 === 1).length },
+        c02: { t: '¿En qué posición están tus fichas con el 0?', k: 'pos', n: [0] },
+        c03: { t: 'Suma los números de tus fichas blancas. ¿Cuánto da?', k: 'num', f: h => sumColor(h, 'white') },
+        c04: { t: '¿Qué fichas contiguas llevan números seguidos? (como 3 y 4)', k: 'grp', g: 'num', f: h => runs(h, (a, b) => b.num === a.num + 1) },
+        c05: { t: '¿Cuántas de tus fichas son blancas?', k: 'num', f: h => h.filter(x => x.color === 'white').length },
+        c06: { t: '¿Cuántas de tus fichas comparten el mismo número?', k: 'num', f: h => h.filter(x => h.filter(y => y.num === x.num).length > 1).length },
+        c07: { t: '¿Cuántas de tus fichas son pares? (el 0 cuenta como par)', k: 'num', f: h => h.filter(x => x.num % 2 === 0).length },
+        c08: { t: '¿Cuánto suman tus tres fichas del medio? (B, C y D)', k: 'num', f: h => sumAt(h, [1, 2, 3]) },
+        c09: { t: '¿En qué posiciones están tus fichas con 1 o con 2? (elige primero cuál)', k: 'pos', n: [1, 2] },
+        c10: { t: '¿Cuánto suman tus tres fichas del lado izquierdo? (A, B y C)', k: 'num', f: h => sumAt(h, [0, 1, 2]) },
+        c11: { t: '¿En qué posiciones están tus fichas con 3 o con 4? (elige primero cuál)', k: 'pos', n: [3, 4] },
+        c12: { t: '¿Cuánto suman tus tres fichas del lado derecho? (C, D y E)', k: 'num', f: h => sumAt(h, [2, 3, 4]) },
+        c13: { t: '¿En qué posiciones están tus fichas con 6 o con 7? (elige primero cuál)', k: 'pos', n: [6, 7] },
+        c14: { t: '¿En qué posiciones están tus fichas con 8 o con 9? (elige primero cuál)', k: 'pos', n: [8, 9] },
+        c15: { t: '¿Qué fichas contiguas son del mismo color?', k: 'grp', g: 'color', f: h => runs(h, (a, b) => a.color === b.color) },
+        c16: { t: '¿En qué posición están tus fichas con el 5?', k: 'pos', n: [5] },
+        c17: { t: 'Suma los números de tus fichas negras. ¿Cuánto da?', k: 'num', f: h => sumColor(h, 'black') },
+        c18: { t: '¿Cuántas de tus fichas son negras?', k: 'num', f: h => h.filter(x => x.color === 'black').length },
+        c19: { t: '¿Cuánta diferencia hay entre tu número mayor y tu número menor?', k: 'num', f: h => Math.max(...h.map(x => x.num)) - Math.min(...h.map(x => x.num)) },
+        c20: { t: '¿Tu ficha C vale más de 4?', k: 'yn', f: h => h[2].num > 4 },
+        c21: { t: '¿Cuál es la suma total de tus cinco fichas?', k: 'num', f: h => sumAt(h, [0, 1, 2, 3, 4]) }
+    };
+    const CARD_IDS = Object.keys(CARDS);
+    const needsParam = (id) => CARDS[id] && CARDS[id].k === 'pos' && CARDS[id].n.length > 1;
+    const posNum = (id, param) => (CARDS[id].n.length === 1 ? CARDS[id].n[0] : param);
+
+    function cardText(id, param) {
+        if (id === 'EMPTY') return '¡Mazo vacío!';
+        if (needsParam(id) && param != null) return `¿En qué posiciones están tus fichas con el ${param}?`;
+        return CARDS[id].t;
+    }
+
+    // Respuesta correcta en formato canónico (para validar, filtrar y comparar)
+    function computeAnswer(id, param, h) {
+        const c = CARDS[id];
+        if (c.k === 'num') return String(c.f(h));
+        if (c.k === 'yn') return c.f(h) ? 'S' : 'N';
+        if (c.k === 'grp') return c.f(h);
+        const n = posNum(id, param);
+        return h.map((x, i) => (x.num === n ? LETTERS[i] : '')).join('');
+    }
+
+    // Texto con el que se "dice" la respuesta
+    function describeAnswer(id, param, canon) {
+        const c = CARDS[id];
+        if (c.k === 'num') return `La respuesta es ${canon}`;
+        if (c.k === 'yn') return canon === 'S' ? 'Sí' : 'No';
+        if (c.k === 'pos') {
+            const n = posNum(id, param);
+            const l = canon.split('').filter(Boolean);
+            if (l.length === 0) return `No tengo ningún ${n}`;
+            if (l.length === 1) return `Tengo un ${n} en ${l[0]}`;
+            return `Tengo ${n} en ${joinY(l)}`;
+        }
+        const tail = c.g === 'color' ? 'tienen el mismo color' : 'tienen números seguidos';
+        if (!canon) return c.g === 'color' ? 'No tengo fichas vecinas del mismo color' : 'No tengo fichas vecinas con números seguidos';
+        const t = canon.split('|').map(g => `las fichas en ${joinY(g.split(''))} ${tail}`).join('; y ');
+        return t.charAt(0).toUpperCase() + t.slice(1);
+    }
+
+    // Reparto: 20 fichas, 5 para cada uno, ordenadas; 6 cartas en la mesa
+    function buildDeal() {
+        let deck = shuffle([...CARD_IDS]);
+        let board = deck.splice(0, 6);
+        const all = shuffle(ALL_TILES.map(t => ({ ...t })));
+        const p1Raw = all.splice(0, 5);
+        const p2Raw = all.splice(0, 5);
+        return { deck, board, p1Tiles: p1Raw.sort(sortTiles), p2Tiles: p2Raw.sort(sortTiles) };
+    }
+
+    // Reglas para terminar la partida (2 jugadores)
+    function nextOnGuess(S, by, ok) {
+        const o = other(by);
+        if (S.phase === 'lastchance') {
+            // 'by' es quien tenía la última oportunidad; 'o' fue quien adivinó primero
+            return ok ? { phase: 'over', turn: S.turn, lastFor: null, result: { type: 'draw' } }
+                      : { phase: 'over', turn: S.turn, lastFor: null, result: { type: 'win', winner: o } };
+        }
+        if (ok) {
+            if (by === S.starter) return { phase: 'lastchance', turn: o, lastFor: o, result: null };
+            return { phase: 'over', turn: S.turn, lastFor: null, result: { type: 'win', winner: by } };
+        }
+        return { phase: 'play', turn: o, lastFor: null, result: null };
+    }
+
+    // =====================================================================
+    // ESTADO GLOBAL
+    // =====================================================================
+    let nick = cleanNick(store.get('lotengo_nick'));
+    let screen = 'menu';        // menu | iaLevel | roomChoice | join | game
+    let pendingMode = null;     // 'cerca' | 'distancia'
+    let session = null;         // {kind:'ia'} | {kind:'room', code}
+    let L = null;               // partida contra la IA
+    let fb = null, roomRef = null, unsubs = [];
+    let pub = null, myTiles = [], myTilesLoaded = false;
+    let dealing = false, verifying = null, netBusy = false;
+    let M = null;               // ventana modal actual
+    let histOpen = false;       // historial (ventana independiente)
+    let popups = [], popupNow = null;
+    let seen = new Set(), seenInit = false;
+    let pendingAnim = null, lastSig = '';
+    let aiBusy = false;
+    let joinCode = '';
+
+    // Vista unificada del juego, sin importar el modo
+    function view() {
+        if (!session) return null;
+        if (session.kind === 'ia') {
+            if (!L) return null;
+            return { mode: 'ia', code: null, role: 1, names: { 1: nick || 'Tú', 2: 'IA' }, dealt: true, p2: true,
+                board: L.board, deck: L.deck, turn: L.turn, starter: L.starter, phase: L.phase, result: L.result,
+                lastFor: L.lastFor, pending: L.pending, guess: L.guess, events: L.events, myTiles: L.humanTiles,
+                level: L.level, aiTiles: L.aiTiles };
+        }
+        if (!pub) return null;
+        const role = fb && pub.p1 === fb.uid ? 1 : (fb && pub.p2 === fb.uid ? 2 : null);
+        return { mode: pub.mode, code: session.code, role, names: { 1: pub.n1 || 'Jugador 1', 2: pub.n2 || 'Jugador 2' },
+            dealt: !!pub.dealt && !!pub.board, p2: !!pub.p2, board: pub.board || [], deck: pub.deck || [], turn: pub.turn,
+            starter: pub.starter, phase: pub.phase || 'play', result: pub.result || null, lastFor: pub.lastFor || null,
+            pending: pub.pending || null, guess: pub.guess || null, events: pub.events || [], myTiles };
+    }
+    const canAct = (V) => V && V.dealt && V.phase === 'play' && V.turn === V.role && !V.pending && !V.guess;
+    const canGuess = (V) => V && V.dealt && V.mode !== 'cerca' && !V.guess && (
+        (V.phase === 'play' && V.turn === V.role && !V.pending) || (V.phase === 'lastchance' && V.lastFor === V.role));
+
+    // =====================================================================
+    // CONEXIÓN A FIREBASE (solo para jugar con otra persona)
+    // =====================================================================
+    async function loadFirebase() {
+        if (fb) return fb;
+        if (!isConfigured) throw new Error('no-config');
+        const base = 'https://www.gstatic.com/firebasejs/11.6.1/';
+        const [A, Au, F] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
+        const app = A.initializeApp(firebaseConfig);
+        const auth = Au.getAuth(app);
+        const db = F.getFirestore(app);
+        const cred = await Au.signInAnonymously(auth);
+        fb = { db, F, uid: cred.user.uid };
+        return fb;
+    }
+    function errorText(e) {
+        const code = (e && (e.code || e.message)) || '';
+        if (code === 'no-config') return 'Falta configurar Firebase en el código del juego';
+        if (String(code).includes('permission-denied')) return 'Firebase rechazó el acceso. Revisa las reglas publicadas';
+        if (String(code).includes('auth')) return 'Activa el acceso Anónimo en Firebase → Authentication';
+        return 'No se pudo conectar. Revisa tu internet';
+    }
+    function randomCode() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let c = '';
+        for (let i = 0; i < 5; i++) c += chars[rand(chars.length)];
+        return c;
+    }
+
+    window.createRoom = async function() {
+        if (netBusy) return;
+        netBusy = true; toast('Creando sala...');
+        try {
+            const f = await loadFirebase();
+            let code = null;
+            for (let i = 0; i < 6 && !code; i++) {
+                const c = randomCode();
+                const ref = f.F.doc(f.db, 'salas', c);
+                const ok = await f.F.runTransaction(f.db, async (tx) => {
+                    const s = await tx.get(ref);
+                    if (s.exists() && s.data().p1) return false;
+                    tx.set(ref, { mode: pendingMode, p1: f.uid, n1: nick, p2: null, n2: null, dealt: false, created: Date.now() });
+                    return true;
+                });
+                if (ok) code = c;
+            }
+            if (!code) throw new Error('code');
+            await enterRoom(code);
+        } catch (e) { console.error(e); toast(errorText(e)); }
+        finally { netBusy = false; }
+    };
+
+    async function doJoin(code, mode) {
+        if (netBusy) return;
+        netBusy = true; toast('Entrando a la sala...');
+        try {
+            const f = await loadFirebase();
+            const ref = f.F.doc(f.db, 'salas', code);
+            const res = await f.F.runTransaction(f.db, async (tx) => {
+                const s = await tx.get(ref);
+                if (!s.exists()) return 'noroom';
+                const d = s.data();
+                if (d.mode !== mode) return 'mode';
+                if (d.p1 === f.uid || d.p2 === f.uid) return 'ok';
+                if (!d.p1) return 'noroom';
+                if (d.p2) return 'full';
+                let n = nick;
+                if (n.toLowerCase() === String(d.n1 || '').toLowerCase()) n = n.slice(0, 10) + ' 2';
+                tx.update(ref, { p2: f.uid, n2: n });
+                return 'ok';
+            });
+            if (res === 'noroom') { toast('No existe una sala con ese código'); store.del('lotengo_room'); }
+            else if (res === 'mode') toast('Esa sala es de otro modo de juego (cerca / a distancia)');
+            else if (res === 'full') toast('Esa sala ya tiene dos jugadores');
+            else { pendingMode = mode; await enterRoom(code); }
+        } catch (e) { console.error(e); toast(errorText(e)); }
+        finally { netBusy = false; }
+    }
+    window.joinRoom = function() {
+        const code = cleanCode(joinCode);
+        if (code.length < 4) { toast('Escribe el código de la sala'); return; }
+        doJoin(code, pendingMode);
+    };
+    window.resumeRoom = function() {
+        if (!requireNick()) return;
+        try {
+            const s = JSON.parse(store.get('lotengo_room') || 'null');
+            if (s && s.code) doJoin(s.code, s.mode);
+        } catch (e) { store.del('lotengo_room'); }
+    };
+
+    function stopListeners() { unsubs.forEach(u => { try { u(); } catch (e) {} }); unsubs = []; }
+
+    async function enterRoom(code) {
+        const f = await loadFirebase();
+        stopListeners();
+        session = { kind: 'room', code };
+        pub = null; myTiles = []; myTilesLoaded = false; seen = new Set(); seenInit = false;
+        M = null; popups = []; popupNow = null; verifying = null; pendingAnim = null;
+        roomRef = f.F.doc(f.db, 'salas', code);
+        store.set('lotengo_room', JSON.stringify({ code, mode: pendingMode }));
+        screen = 'game';
+        // Mis fichas: el documento solo lo puedo leer yo (reglas de Firebase)
+        unsubs.push(f.F.onSnapshot(f.F.doc(f.db, 'salas', code, 'manos', f.uid), (s) => {
+            myTiles = s.exists() ? (s.data().tiles || []) : [];
+            myTilesLoaded = true;
+            maybeVerify();
+            afterState();
+        }, (e) => console.error('manos', e)));
+        unsubs.push(f.F.onSnapshot(roomRef, (s) => {
+            const next = s.exists() ? s.data() : null;
+            detectAnim(pub, next);
+            pub = next;
+            if (pub && !pub.mode && pendingMode) pub.mode = pendingMode;
+            maybeDeal();
+            maybeVerify();
+            afterState();
+        }, (e) => { console.error('sala', e); toast('Se perdió la conexión con la sala'); }));
+        render(true);
+    }
+
+    function leaveGame() {
+        stopListeners();
+        session = null; L = null; pub = null; myTiles = []; M = null; popups = []; popupNow = null; histOpen = false;
+        seen = new Set(); seenInit = false; aiBusy = false;
+        store.del('lotengo_room');
+        screen = 'menu';
+        renderModal(); renderHistory(); renderPopup(); render(true);
+    }
+    window.leaveGame = function() {
+        if (confirm('¿Salir de la partida?')) leaveGame();
+    };
+
+    // El jugador 2 reparte apenas entra (reparto automático)
+    function maybeDeal() {
+        if (!pub || dealing || !fb) return;
+        if (pub.p1 && pub.p2 && !pub.dealt && fb.uid === pub.p2) deal();
+    }
+    async function deal() {
+        if (!pub || !pub.p1 || !pub.p2) return;
+        dealing = true;
+        const g = buildDeal();
+        const starter = 1 + rand(2); // el primer turno es aleatorio
+        try {
+            const batch = fb.F.writeBatch(fb.db);
+            batch.set(roomRef, {
+                mode: pub.mode, created: pub.created || Date.now(),
+                p1: pub.p1, p2: pub.p2, n1: pub.n1 || '', n2: pub.n2 || '', dealt: true,
+                deck: g.deck, board: g.board, turn: starter, starter: starter, phase: 'play',
+                result: null, lastFor: null, pending: null, guess: null, events: [], round: (pub.round || 0) + 1
+            });
+            batch.set(fb.F.doc(fb.db, 'salas', session.code, 'manos', pub.p1), { tiles: g.p1Tiles });
+            batch.set(fb.F.doc(fb.db, 'salas', session.code, 'manos', pub.p2), { tiles: g.p2Tiles });
+            await batch.commit();
+        } catch (e) {
+            console.error(e);
+            alert('No se pudo repartir. Revisa que las reglas de Firestore estén publicadas.');
+        } finally { dealing = false; }
+    }
+
+    // El oponente comprueba (en su propio dispositivo) si el código adivinado es correcto
+    function maybeVerify() {
+        if (!pub || !pub.guess || !fb || !myTilesLoaded) return;
+        const role = pub.p1 === fb.uid ? 1 : (pub.p2 === fb.uid ? 2 : null);
+        if (!role || pub.guess.by === role) return;
+        if (verifying === pub.guess.id) return;
+        verifying = pub.guess.id;
+        const by = pub.guess.by;
+        const ok = tilesEqual(pub.guess.tiles, myTiles);
+        const nx = nextOnGuess(pub, by, ok);
+        fb.F.updateDoc(roomRef, {
+            guess: null, phase: nx.phase, turn: nx.turn, lastFor: nx.lastFor, result: nx.result,
+            events: fb.F.arrayUnion({ id: uid4(), t: 'guessResult', by, ok })
+        }).catch(e => { console.error(e); verifying = null; });
+    }
+
+    // =====================================================================
+    // ACCIONES DEL JUEGO (iguales para IA y para sala; cambia dónde se guarda)
+    // =====================================================================
+    function update(fields, evs) {
+        if (session && session.kind === 'ia') {
+            if (fields.board) detectAnim({ board: L.board, round: L.round }, { board: fields.board, round: L.round });
+            Object.assign(L, fields);
+            if (evs && evs.length) L.events = [...L.events, ...evs];
+            afterState();
+        } else {
+            const f = { ...fields };
+            if (evs && evs.length) f.events = fb.F.arrayUnion(...evs);
+            fb.F.updateDoc(roomRef, f).catch(e => { console.error(e); toast('No se pudo enviar. ¿Sin conexión?'); });
+        }
+    }
+
+    function useCard(idx, param) {
+        const V = view();
+        if (!canAct(V)) return;
+        const cardId = V.board[idx];
+        const nd = [...V.deck], nb = [...V.board];
+        nb[idx] = nd.length ? nd.shift() : 'EMPTY';
+        if (V.mode === 'cerca') {
+            update({ board: nb, deck: nd, turn: other(V.role) });
+        } else if (V.mode === 'ia') {
+            const canon = computeAnswer(cardId, param, L.aiTiles);
+            update({ board: nb, deck: nd, turn: 2 },
+                [{ id: uid4(), t: 'answer', from: 2, to: 1, q: cardText(cardId, param), a: describeAnswer(cardId, param, canon) }]);
+        } else {
+            update({ board: nb, deck: nd, pending: { id: uid4(), by: V.role, cardId, param: param == null ? null : param } });
+        }
+    }
+
+    // Responder la pregunta que me hicieron
+    function submitAnswer(canon) {
+        const V = view();
+        if (!V || !V.pending || V.pending.by === V.role) return;
+        const p = V.pending;
+        const text = describeAnswer(p.cardId, p.param, canon);
+        if (V.mode === 'ia') {
+            L.cands = L.cands.filter(h => computeAnswer(p.cardId, p.param, h) === canon);
+        }
+        update({ pending: null, turn: V.role },
+            [{ id: uid4(), t: 'answer', from: V.role, to: p.by, q: cardText(p.cardId, p.param), a: text }]);
+    }
+
+    function submitGuess(tiles) {
+        const V = view();
+        if (!canGuess(V)) return;
+        const gid = uid4();
+        if (V.mode === 'ia') {
+            const ok = tilesEqual(tiles, L.aiTiles);
+            const nx = nextOnGuess(L, 1, ok);
+            update({ ...nx, guess: null }, [{ id: gid, t: 'guess', by: 1, tiles }, { id: uid4(), t: 'guessResult', by: 1, ok }]);
+        } else {
+            update({ guess: { id: gid, by: V.role, tiles } }, [{ id: gid, t: 'guess', by: V.role, tiles }]);
+        }
+    }
+
+    window.passTurn = function() {
+        const V = view();
+        if (!V || V.mode !== 'cerca' || !canAct(V)) return;
+        if (!confirm('¿Pasar turno? Hazlo si intentaste adivinar el código y fallaste.')) return;
+        update({ turn: other(V.role) });
+    };
+
+    window.newGame = function() {
+        const V = view();
+        if (!V) return;
+        if (V.phase !== 'over' && !confirm('¿Empezar una partida nueva? Se reparten cartas y fichas nuevas.')) return;
+        if (session.kind === 'ia') { startIA(L.level, true); }
+        else { M = null; deal(); }
+    };
+
+    // =====================================================================
+    // IA
+    // =====================================================================
+    function combos(pool, k) {
+        const res = [];
+        (function rec(start, acc) {
+            if (acc.length === k) { res.push(acc.slice()); return; }
+            for (let i = start; i < pool.length; i++) { acc.push(pool[i]); rec(i + 1, acc); acc.pop(); }
+        })(0, []);
+        return res;
+    }
+    // Todas las manos posibles del oponente, sabiendo cuál es la mía
+    function buildCands(own) {
+        const pool = ALL_TILES.map(t => ({ ...t }));
+        own.forEach(t => { const i = pool.findIndex(p => p.num === t.num && p.color === t.color); if (i >= 0) pool.splice(i, 1); });
+        return combos(pool, 5).map(c => c.sort(sortTiles));
+    }
+
+    function startIA(level, silent) {
+        const g = buildDeal();
+        const starter = 1 + rand(2);
+        L = { level, board: g.board, deck: g.deck, humanTiles: g.p1Tiles, aiTiles: g.p2Tiles, starter, turn: starter,
+              phase: 'play', result: null, lastFor: null, pending: null, guess: null, events: [], round: 1,
+              cands: buildCands(g.p2Tiles) };
+        session = { kind: 'ia' };
+        screen = 'game';
+        M = null; popups = []; popupNow = null; seen = new Set(); seenInit = true; pendingAnim = null; aiBusy = false;
+        renderPopup();
+        afterState(true);
+    }
+    window.startIA = (level) => startIA(level);
+
+    function aiDecide() {
+        const lvl = L.level;
+        const N = L.cands.length;
+        const randHand = () => L.cands.length ? L.cands[rand(L.cands.length)] : shuffle(ALL_TILES.map(t => ({ ...t }))).slice(0, 5).sort(sortTiles);
+        if (N === 1) return { type: 'guess', hand: L.cands[0] };
+
+        const options = [];
+        L.board.forEach((id, i) => {
+            if (id === 'EMPTY') return;
+            if (needsParam(id)) CARDS[id].n.forEach(p => options.push({ i, id, param: p }));
+            else options.push({ i, id, param: null });
+        });
+        options.forEach(o => {
+            const g = {};
+            L.cands.forEach(h => { const a = computeAnswer(o.id, o.param, h); g[a] = (g[a] || 0) + 1; });
+            o.parts = Object.keys(g).length;
+            o.score = Object.values(g).reduce((s, v) => s + v * v, 0) / Math.max(N, 1);
+        });
+        const useful = options.filter(o => o.parts > 1);
+
+        if (lvl === 'facil') {
+            if (N === 2 && Math.random() < 0.5) return { type: 'guess', hand: randHand() };
+            if (!options.length) return { type: 'guess', hand: randHand() };
+            return { type: 'ask', ...options[rand(options.length)] };
+        }
+        if (lvl === 'medio') {
+            if (N <= 2) return { type: 'guess', hand: randHand() };
+            if (!useful.length) return { type: 'guess', hand: randHand() };
+            return { type: 'ask', ...useful[rand(useful.length)] };
+        }
+        // difícil: la pregunta que más combinaciones elimina; solo adivina cuando está segura
+        if (!useful.length) return { type: 'guess', hand: randHand() };
+        useful.sort((a, b) => a.score - b.score);
+        return { type: 'ask', ...useful[0] };
+    }
+
+    function aiMove() {
+        if (!session || session.kind !== 'ia' || !L || L.phase === 'over' || popupNow) return;
+        if (L.phase === 'lastchance' && L.lastFor === 2) {
+            aiGuess(L.cands.length ? L.cands[rand(L.cands.length)] : L.aiTiles);
+            return;
+        }
+        if (L.phase !== 'play' || L.turn !== 2 || L.pending) return;
+        const d = aiDecide();
+        if (d.type === 'guess') { aiGuess(d.hand); return; }
+        const nd = [...L.deck], nb = [...L.board];
+        nb[d.i] = nd.length ? nd.shift() : 'EMPTY';
+        update({ board: nb, deck: nd, pending: { id: uid4(), by: 2, cardId: d.id, param: d.param } });
+    }
+    function aiGuess(hand) {
+        const tiles = hand.map(t => ({ num: t.num, color: t.color }));
+        const ok = tilesEqual(tiles, L.humanTiles);
+        const nx = nextOnGuess(L, 2, ok);
+        if (!ok) { const k = handKey(tiles); L.cands = L.cands.filter(h => handKey(h) !== k); }
+        update({ ...nx, guess: null }, [{ id: uid4(), t: 'guess', by: 2, tiles }, { id: uid4(), t: 'guessResult', by: 2, ok }]);
+    }
+    // Programa el movimiento de la IA cuando le toca y no hay ventanas abiertas
+    function tick() {
+        if (!session || session.kind !== 'ia' || !L || aiBusy || popupNow || screen !== 'game') return;
+        if (L.phase === 'over') return;
+        const moves = (L.phase === 'play' && L.turn === 2 && !L.pending) || (L.phase === 'lastchance' && L.lastFor === 2);
+        if (!moves) return;
+        aiBusy = true;
+        const wait = window.__fast ? 5 : 900 + rand(500);
+        setTimeout(() => { aiBusy = false; aiMove(); }, wait);
+    }
+
+    // =====================================================================
+    // AVISOS EMERGENTES (se cierran con un clic)
+    // =====================================================================
+    function enqueuePopup(p) { popups.push(p); showNextPopup(); }
+    function showNextPopup() { if (!popupNow && popups.length) popupNow = popups.shift(); renderPopup(); }
+    window.closePopup = function() { popupNow = null; showNextPopup(); afterState(); };
+    function renderPopup() {
+        const root = $('popup-root');
+        if (!root) return;
+        if (!popupNow) { root.innerHTML = ''; return; }
+        root.innerHTML = `<div class="fixed inset-x-0 top-4 flex justify-center px-3" style="z-index:150">
+            <div onclick="closePopup()" class="popup-card cursor-pointer max-w-md w-full text-center rounded-xl border-4 border-black shadow-2xl p-4 ${popupNow.cls || 'bg-yellow-100'}">
+                ${popupNow.html}
+                <div class="text-xs opacity-60 mt-2">(toca para cerrar)</div>
+            </div></div>`;
+    }
+    const tileChip = (t, cls = 'w-10 h-12 text-xl') => `<div class="${cls} rounded-md flex items-center justify-center font-bold tile-${t.color}">${t.num}</div>`;
+
+    function processEvents(V) {
+        if (!V) return;
+        const evs = V.events || [];
+        if (!seenInit) { evs.forEach(e => seen.add(e.id)); seenInit = true; return; }
+        evs.forEach(e => {
+            if (seen.has(e.id)) return;
+            seen.add(e.id);
+            const who = V.names[e.from || e.by] || '';
+            if (e.t === 'answer' && e.to === V.role) {
+                enqueuePopup({ cls: 'bg-yellow-100', html: `<div class="text-sm opacity-70">${esc(e.q)}</div>
+                    <div class="handwritten text-3xl">${esc(who)} responde:</div>
+                    <div class="text-xl font-bold">“${esc(e.a)}”</div>` });
+            } else if (e.t === 'guess' && e.by !== V.role) {
+                enqueuePopup({ cls: 'bg-orange-100', html: `<div class="handwritten text-3xl mb-2">🔍 ${esc(who)} intenta adivinar tu código:</div>
+                    <div class="flex justify-center gap-2">${e.tiles.map(t => tileChip(t)).join('')}</div>` });
+            } else if (e.t === 'guessResult') {
+                if (e.by === V.role) {
+                    enqueuePopup(e.ok
+                        ? { cls: 'bg-green-200', html: `<div class="handwritten text-4xl">¡Acertaste! 🎉</div><div>Adivinaste el código de ${esc(V.names[other(V.role)])}.</div>` }
+                        : { cls: 'bg-red-200', html: `<div class="handwritten text-4xl">Fallaste 😬</div><div>Ese no era el código. Se acabó tu turno.</div>` });
+                } else {
+                    enqueuePopup(e.ok
+                        ? { cls: 'bg-red-200', html: `<div class="handwritten text-4xl">¡${esc(who)} acertó!</div><div>Adivinó tu código.</div>` }
+                        : { cls: 'bg-green-200', html: `<div class="handwritten text-4xl">¡${esc(who)} falló!</div><div>No adivinó tu código. Ahora es tu turno.</div>` });
+                }
+            }
+        });
+    }
+
+    // =====================================================================
+    // ANIMACIÓN DE CARTAS
+    // =====================================================================
+    function detectAnim(prev, next) {
+        if (!prev || !next || !prev.board || !next.board) return;
+        if (prev.round !== next.round) return; // partida nueva: sin animación
+        const changed = {};
+        next.board.forEach((c, i) => { if (prev.board[i] !== undefined && prev.board[i] !== c) changed[i] = prev.board[i]; });
+        if (Object.keys(changed).length) pendingAnim = changed;
+    }
+
+    // =====================================================================
+    // CICLO DE ACTUALIZACIÓN
+    // =====================================================================
+    function afterState(force) {
+        processEvents(view());
+        syncModals();
+        renderHistory();
+        render(force);
+        tick();
+    }
+
+    // =====================================================================
+    // VENTANAS (modales)
+    // =====================================================================
+    function syncModals() {
+        const V = view();
+        if (M) {
+            if (M.type === 'answer' && !(V && V.pending && V.pending.by !== V.role && V.phase === 'play' && V.pending.id === M.pid)) M = null;
+            else if (M && M.type === 'card' && !canAct(V)) M = null;
+            else if (M && M.type === 'guess' && !canGuess(V)) M = null;
+        }
+        if (!M && V && V.pending && V.pending.by !== V.role && V.phase === 'play' && !popupNow) {
+            M = { type: 'answer', pid: V.pending.id, groups: [[]], digits: '', err: false };
+        }
+        if (V && V.phase === 'over' && !popupNow && popups.length === 0 && (!M || M.type !== 'over')) M = { type: 'over' };
+        if ((!V || V.phase !== 'over') && M && M.type === 'over') M = null;
+        renderModal();
+    }
+
+    function modalShell(inner, extra, canMin) {
+        return `<div class="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center p-3" style="z-index:50;backdrop-filter:blur(3px)">
+            <div class="bg-white p-5 sm:p-7 rounded-lg w-full ${extra || 'max-w-md'} text-center relative shadow-2xl border-2 border-black ${M && M.err ? 'shake' : ''}" style="max-height:94vh;overflow:auto">
+                <div class="tape tape-green"></div>
+                ${canMin ? '<button onclick="minModal()" title="Minimizar para ver la mesa, tus fichas y el historial" class="absolute top-2 right-2 px-2 py-1 rounded border-2 border-black bg-white font-bold text-sm shadow hover:bg-gray-100">➖ Minimizar</button>' : ''}
+                ${inner}</div></div>`;
+    }
+    // Barra flotante que aparece cuando la ventana está minimizada
+    function minBar(V) {
+        let label = '';
+        if (M.type === 'answer') label = V.pending ? `✍️ Responder a ${esc(V.names[V.pending.by])}` : '✍️ Responder';
+        else if (M.type === 'guess') label = '🔍 Seguir adivinando';
+        else label = '🏁 Ver resultado';
+        return `<div class="fixed inset-x-0 bottom-3 flex justify-center px-3" style="z-index:50">
+            <button onclick="restoreModal()" class="mode-btn ${M.type === 'answer' ? 'animate-pulse' : ''} bg-green-600 text-white font-bold rounded-full border-4 border-black shadow-lg px-6 py-3 handwritten" style="font-size:1.7rem">${label} ▲</button></div>`;
+    }
+    window.minModal = () => { if (M && ['answer', 'guess', 'over'].includes(M.type)) { M.min = true; renderModal(); } };
+    window.restoreModal = () => { if (M) { M.min = false; renderModal(); } };
+
+    function renderModal() {
+        const root = $('modal-root');
+        if (!root) return;
+        const V = view();
+        if (!M || !V) { root.innerHTML = ''; return; }
+        if (M.min && ['answer', 'guess', 'over'].includes(M.type)) { root.innerHTML = minBar(V); return; }
+        if (M.type === 'card') root.innerHTML = cardModal(V);
+        else if (M.type === 'answer') root.innerHTML = answerModal(V);
+        else if (M.type === 'guess') root.innerHTML = guessModal(V);
+        else if (M.type === 'over') root.innerHTML = overModal(V);
+        else root.innerHTML = '';
+    }
+
+    // ---- Usar carta
+    function cardModal(V) {
+        const id = V.board[M.idx];
+        const choose = needsParam(id) && V.mode !== 'cerca';
+        let choice = '';
+        if (choose) {
+            choice = `<p class="mb-2 font-bold">Elige primero por cuál número preguntas:</p>
+                <div class="flex gap-3 justify-center mb-5">${CARDS[id].n.map(n => `
+                    <button onclick="setParam(${n})" class="key ${M.param === n ? 'key-on' : ''}" style="min-width:90px">El ${n}</button>`).join('')}</div>`;
+        }
+        return modalShell(`
+            <h2 class="text-3xl handwritten mb-5 mt-3 text-black">${esc(cardText(id, M.param))}</h2>
+            ${choice}
+            <div class="flex gap-4 justify-center">
+                <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded shadow hover:bg-gray-300 transition font-bold border border-gray-400">Cancelar</button>
+                <button onclick="confirmCard()" class="px-4 py-2 bg-green-600 text-white rounded shadow hover:bg-green-700 transition font-bold border border-green-800">¡Usar Carta!</button>
+            </div>`);
+    }
+    window.setParam = (n) => { if (M && M.type === 'card') { M.param = n; renderModal(); } };
+    window.closeModal = () => { M = null; renderModal(); };
+    window.openCard = function(idx) {
+        const V = view();
+        if (!V || !V.dealt) return;
+        if (V.board[idx] === 'EMPTY') return;
+        if (!canAct(V)) {
+            if (V.pending || V.guess || V.phase !== 'play') toast('Ahora no puedes usar cartas');
+            else toast('Es el turno de ' + V.names[other(V.role)]);
+            return;
+        }
+        M = { type: 'card', idx, param: null };
+        renderModal();
+    };
+    window.confirmCard = function() {
+        const V = view();
+        if (!M || M.type !== 'card' || !V) return;
+        const id = V.board[M.idx];
+        if (needsParam(id) && V.mode !== 'cerca' && M.param == null) { toast('Elige primero el número'); return; }
+        const idx = M.idx, param = M.param;
+        M = null; renderModal();
+        useCard(idx, param);
+    };
+
+    // ---- Responder una pregunta
+    function answerModal(V) {
+        const p = V.pending, c = CARDS[p.cardId];
+        const asker = V.names[p.by];
+        const keys = (inner) => `<div class="grid grid-cols-3 gap-2 max-w-xs mx-auto">${inner}</div>`;
+        let box = '', pad = '';
+        if (c.k === 'num') {
+            box = M.digits === '' ? '<span class="opacity-40">?</span>' : esc(M.digits);
+            pad = keys([1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button onclick="aDigit(${n})" class="key">${n}</button>`).join('') +
+                `<button onclick="aErase()" class="key key-erase" title="Borrar">⌫</button><button onclick="aDigit(0)" class="key">0</button><button onclick="aCheck()" class="key key-ok" title="Enviar">✔</button>`);
+        } else if (c.k === 'yn') {
+            box = '<span class="opacity-40 text-2xl">Elige una respuesta</span>';
+            pad = `<div class="flex gap-3 justify-center"><button onclick="aYN('S')" class="key key-ok" style="min-width:110px">Sí</button><button onclick="aYN('N')" class="key key-erase" style="min-width:110px">No</button></div>`;
+        } else {
+            const all = M.groups.flat();
+            box = all.length === 0
+                ? '<span class="opacity-40 text-xl">Sin letras = «no tengo ninguna»</span>'
+                : M.groups.map(g => `<span class="inline-flex gap-1">${g.map(l => `<span class="inline-block bg-black text-white rounded px-2">${l}</span>`).join('') || '<span class="opacity-40">…</span>'}</span>`).join('<span class="mx-2 opacity-50">|</span>');
+            const cur = M.groups[M.groups.length - 1];
+            const letters = LETTERS.map(l => {
+                const inCur = cur.includes(l), inOther = !inCur && all.includes(l);
+                return `<button onclick="aLetter('${l}')" class="key ${inCur ? 'key-on' : ''} ${inOther ? 'key-dim' : ''}" style="min-width:52px">${l}</button>`;
+            }).join('');
+            pad = `<div class="flex gap-2 justify-center flex-wrap mb-3">${letters}</div>
+                <div class="flex gap-2 justify-center">
+                    <button onclick="aAdd()" class="key key-add" ${c.k === 'grp' ? '' : 'disabled'} title="Añadir otro grupo" style="min-width:70px">＋ grupo</button>
+                    <button onclick="aErase()" class="key key-erase" title="Borrar" style="min-width:70px">⌫</button>
+                    <button onclick="aCheck()" class="key key-ok" title="Enviar" style="min-width:70px">✔</button>
+                </div>`;
+        }
+        const hint = c.k === 'grp' ? '<p class="text-sm text-gray-500 mb-3">Si hay varios grupos, usa «＋ grupo» para separarlos.</p>' : '';
+        return modalShell(`
+            <p class="text-sm font-bold text-green-800 mb-1">✍️ ${esc(asker)} te pregunta:</p>
+            <h2 class="text-2xl sm:text-3xl handwritten mb-4 text-black leading-tight">${esc(cardText(p.cardId, p.param))}</h2>
+            <div class="answer-box mb-3">${box}</div>
+            ${M.err ? '<p class="text-red-600 font-bold text-sm mb-3">Esa respuesta no coincide con tus fichas. Revísala. 🧐</p>' : ''}
+            ${hint}${pad}`, null, true);
+    }
+    function currentCard() { const V = view(); return V && V.pending ? CARDS[V.pending.cardId] : null; }
+    window.aDigit = (n) => {
+        if (!M || M.type !== 'answer') return;
+        M.err = false;
+        if (M.digits === '0') M.digits = String(n);
+        else if (M.digits.length < 2) M.digits += String(n);
+        renderModal();
+    };
+    window.aLetter = (l) => {
+        if (!M || M.type !== 'answer') return;
+        M.err = false;
+        const cur = M.groups[M.groups.length - 1];
+        if (cur.includes(l)) cur.splice(cur.indexOf(l), 1);
+        else if (!M.groups.flat().includes(l)) cur.push(l);
+        renderModal();
+    };
+    window.aAdd = () => {
+        const c = currentCard();
+        if (!M || !c || c.k !== 'grp') return;
+        if (M.groups[M.groups.length - 1].length) M.groups.push([]);
+        renderModal();
+    };
+    window.aErase = () => {
+        if (!M || M.type !== 'answer') return;
+        M.err = false;
+        const c = currentCard();
+        if (c && c.k === 'num') M.digits = M.digits.slice(0, -1);
+        else {
+            const cur = M.groups[M.groups.length - 1];
+            if (cur.length) cur.pop();
+            else if (M.groups.length > 1) M.groups.pop();
+        }
+        renderModal();
+    };
+    function tryAnswer(canon) {
+        const V = view();
+        if (!V || !V.pending) return;
+        const p = V.pending;
+        const correct = computeAnswer(p.cardId, p.param, V.myTiles);
+        if (canon !== correct) { M.err = true; renderModal(); return; }
+        M = null; renderModal();
+        submitAnswer(canon);
+    }
+    window.aYN = (v) => { if (M && M.type === 'answer') tryAnswer(v); };
+    window.aCheck = () => {
+        const c = currentCard();
+        if (!M || M.type !== 'answer' || !c) return;
+        if (c.k === 'num') {
+            if (M.digits === '') { toast('Escribe un número'); return; }
+            tryAnswer(String(parseInt(M.digits, 10)));
+        } else {
+            const groups = M.groups.map(g => g.slice().sort().join('')).filter(Boolean);
+            if (c.k === 'pos') tryAnswer(groups.join('').split('').sort().join(''));
+            else tryAnswer(groups.sort().join('|'));
+        }
+    };
+
+    // ---- Adivinar código
+    window.openGuess = function() {
+        const V = view();
+        if (!canGuess(V)) return;
+        M = { type: 'guess', slots: [null, null, null, null, null], sel: 0, err: false };
+        renderModal();
+    };
+    function guessModal(V) {
+        const slots = M.slots.map((t, i) => `
+            <div class="flex flex-col items-center gap-1">
+                <div onclick="gSel(${i})" class="w-12 h-16 sm:w-16 sm:h-20 rounded-lg flex items-center justify-center text-3xl sm:text-4xl font-bold cursor-pointer shadow ${t ? 'tile-' + t.color : 'bg-gray-100 border-2 border-dashed border-gray-400 text-gray-300'} ${M.sel === i ? 'slot-sel' : ''}">${t ? t.num : '?'}</div>
+                <div class="bg-white px-3 rounded-md text-xl font-bold handwritten border-2 border-black">${LETTERS[i]}</div>
+            </div>`).join('');
+        const keys = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button onclick="gDigit(${n})" class="key">${n}</button>`).join('') +
+            `<button onclick="gErase()" class="key key-erase" title="Borrar">⌫</button><button onclick="gDigit(0)" class="key">0</button><button onclick="gCheck()" class="key key-ok" title="Enviar">✔</button>`;
+        const lc = V.phase === 'lastchance';
+        return modalShell(`
+            <h2 class="text-3xl handwritten mb-1 mt-3 text-black">🔍 Adivinar código</h2>
+            <p class="text-sm text-gray-600 mb-3">${lc ? '¡Última oportunidad! ' : ''}Adivina las 5 fichas de ${esc(V.names[other(V.role)])}, de izquierda a derecha.</p>
+            <div class="flex justify-center gap-2 sm:gap-3 mb-3">${slots}</div>
+            <p class="text-xs text-gray-500 mb-3">Toca un número una vez = <b>blanco</b>, dos veces = <b>negro</b>. El 5 siempre es verde. Toca una casilla para cambiarla.</p>
+            ${M.err ? '<p class="text-red-600 font-bold text-sm mb-2">Completa las 5 casillas antes de enviar.</p>' : ''}
+            <div class="grid grid-cols-3 gap-2 max-w-xs mx-auto mb-4">${keys}</div>
+            <button onclick="gCancel()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded shadow hover:bg-gray-300 transition font-bold border border-gray-400">✖ Cancelar</button>`, 'max-w-lg', true);
+    }
+    window.gSel = (i) => { if (M && M.type === 'guess') { M.sel = i; renderModal(); } };
+    window.gDigit = (d) => {
+        if (!M || M.type !== 'guess') return;
+        M.err = false;
+        const cur = M.slots[M.sel];
+        if (d === 5) M.slots[M.sel] = { num: 5, color: 'green' };
+        else if (cur && cur.num === d && cur.color === 'white') M.slots[M.sel] = { num: d, color: 'black' };
+        else if (cur && cur.num === d && cur.color === 'black') M.slots[M.sel] = { num: d, color: 'white' };
+        else M.slots[M.sel] = { num: d, color: 'white' };
+        renderModal();
+    };
+    window.gErase = () => { if (M && M.type === 'guess') { M.slots[M.sel] = null; renderModal(); } };
+    window.gCancel = () => { M = null; renderModal(); };
+    window.gCheck = () => {
+        if (!M || M.type !== 'guess') return;
+        if (M.slots.some(s => !s)) { M.err = true; renderModal(); return; }
+        const tiles = M.slots.map(s => ({ num: s.num, color: s.color }));
+        M = null; renderModal();
+        submitGuess(tiles);
+    };
+
+    // ---- Historial del oponente
+    window.openHistory = function() {
+        if (!view()) return;
+        histOpen = true;
+        renderHistory();
+    };
+    window.closeHistory = function() { histOpen = false; renderHistory(); };
+    function renderHistory() {
+        const root = $('history-root');
+        if (!root) return;
+        const V = view();
+        root.innerHTML = (histOpen && V) ? historyModal(V) : '';
+    }
+    function histShell(inner) {
+        return `<div class="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center p-3" style="z-index:70;backdrop-filter:blur(3px)">
+            <div class="bg-white p-5 sm:p-7 rounded-lg w-full max-w-md text-center relative shadow-2xl border-2 border-black" style="max-height:94vh;overflow:auto">
+                <div class="tape tape-green"></div>${inner}</div></div>`;
+    }
+    function historyModal(V) {
+        const opp = other(V.role), name = V.names[opp];
+        const items = [];
+        V.events.forEach((e, i) => {
+            if (e.t === 'answer' && e.from === opp) {
+                items.push(`<div class="text-left bg-yellow-50 border-2 border-black rounded-lg p-3 mb-2">
+                    <div class="text-xs text-gray-500">${esc(e.q)}</div><div class="font-bold">“${esc(e.a)}”</div></div>`);
+            } else if (e.t === 'guess' && e.by === opp) {
+                const r = V.events.slice(i + 1).find(x => x.t === 'guessResult' && x.by === opp);
+                items.push(`<div class="text-left bg-orange-50 border-2 border-black rounded-lg p-3 mb-2">
+                    <div class="text-xs text-gray-500">Intentó adivinar tu código ${r ? (r.ok ? '· ¡acertó!' : '· falló') : ''}</div>
+                    <div class="flex gap-1 mt-1">${e.tiles.map(t => tileChip(t, 'w-8 h-10 text-lg')).join('')}</div></div>`);
+            }
+        });
+        return histShell(`
+            <h2 class="text-3xl handwritten mb-3 mt-3 text-black">📜 Lo que ha dicho ${esc(name)}</h2>
+            <div class="text-left" style="max-height:55vh;overflow:auto">${items.length ? items.reverse().join('') : '<p class="text-center text-gray-500 py-6">Todavía no ha dicho nada.</p>'}</div>
+            <button onclick="closeHistory()" class="mt-4 px-4 py-2 bg-black text-white rounded shadow hover:bg-gray-800 transition font-bold">Cerrar</button>`);
+    }
+
+    // ---- Fin de la partida
+    function overModal(V) {
+        const r = V.result || {};
+        let title, sub, cls;
+        if (r.type === 'draw') { title = '¡Empate! 🤝'; sub = 'Los dos adivinaron el código.'; cls = 'text-yellow-700'; }
+        else if (r.winner === V.role) { title = '¡Ganaste! 🎉'; sub = 'Adivinaste el código de ' + V.names[other(V.role)] + '.'; cls = 'text-green-700'; }
+        else { title = 'Perdiste 😢'; sub = 'Ganó ' + V.names[r.winner] + '.'; cls = 'text-red-700'; }
+        const reveal = V.mode === 'ia' && V.aiTiles
+            ? `<p class="font-bold mt-3 mb-1">Las fichas de la IA eran:</p><div class="flex justify-center gap-2">${V.aiTiles.map(t => tileChip(t, 'w-12 h-16 text-2xl')).join('')}</div>` : '';
+        return modalShell(`
+            <h2 class="text-5xl handwritten mb-2 mt-3 ${cls}">${title}</h2>
+            <p class="text-lg">${esc(sub)}</p>${reveal}
+            <div class="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+                <button onclick="newGame()" class="px-4 py-3 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition font-bold border-2 border-green-800">🎲 ${V.mode === 'ia' ? 'Jugar otra vez' : 'Nueva partida'}</button>
+                <button onclick="leaveGameNow()" class="px-4 py-3 bg-white text-black rounded-lg shadow hover:bg-gray-100 transition font-bold border-2 border-black">🏠 Menú</button>
+            </div>`, null, true);
+    }
+    window.leaveGameNow = () => leaveGame();
+
+    // =====================================================================
+    // PANTALLAS
+    // =====================================================================
+    function requireNick() {
+        if (nick) return true;
+        toast('✏️ Escribe tu nickname para continuar');
+        const i = $('nick-input');
+        if (i) { i.classList.remove('shake'); void i.offsetWidth; i.classList.add('shake'); i.style.borderColor = '#dc2626'; i.focus(); }
+        return false;
+    }
+    window.onNick = (v) => {
+        nick = cleanNick(v);
+        store.set('lotengo_nick', nick);
+        const i = $('nick-input'); if (i) i.style.borderColor = '';
+    };
+    window.go = (s, mode) => { if (mode) pendingMode = mode; screen = s; render(true); };
+    window.menuIA = () => { if (requireNick()) go('iaLevel'); };
+    window.menuRoom = (mode) => { if (requireNick()) go('roomChoice', mode); };
+    window.onJoinCode = (el) => { joinCode = cleanCode(el.value); el.value = joinCode; };
+    window.shareCode = async function() {
+        const code = session && session.code;
+        if (!code) return;
+        const text = `Únete a mi sala de ¡Lo tengo! con el código: ${code}`;
+        if (navigator.share) {
+            try { await navigator.share({ title: '¡Lo tengo!', text, url: location.origin + location.pathname }); return; }
+            catch (e) { if (e.name === 'AbortError') return; }
+        }
+        try { await navigator.clipboard.writeText(code); toast('¡Código copiado: ' + code + '!'); }
+        catch (e) { prompt('Copia el código de la sala:', code); }
+    };
+
+    const card = (inner) => `<div class="max-w-lg mx-auto mt-6 sm:mt-12 bg-white p-6 sm:p-10 rounded-xl shadow-lg border-4 border-double border-green-800 text-center relative"><div class="tape tape-green"></div>${inner}</div>`;
+    const logo = () => `<div class="flex justify-center gap-2 mb-3">
+            <div class="w-11 h-14 rounded-lg flex items-center justify-center text-2xl font-bold tile-black shadow -rotate-6">3</div>
+            <div class="w-11 h-14 rounded-lg flex items-center justify-center text-2xl font-bold tile-white shadow rotate-3">4</div>
+            <div class="w-11 h-14 rounded-lg flex items-center justify-center text-2xl font-bold tile-green shadow -rotate-3">5</div>
+            <div class="w-11 h-14 rounded-lg flex items-center justify-center text-2xl font-bold tile-black shadow rotate-6">7</div>
+            <div class="w-11 h-14 rounded-lg flex items-center justify-center text-2xl font-bold tile-white shadow -rotate-2">9</div></div>
+        <h1 class="text-5xl handwritten mb-1 text-green-900 font-bold">¡Lo tengo!</h1>`;
+    const backBtn = (to) => `<button onclick="go('${to}')" class="mt-6 px-4 py-2 bg-white border-2 border-black text-black font-bold rounded shadow hover:bg-gray-100 transition">⬅ Volver</button>`;
+    const modeBtn = (onclick, emoji, title, desc, cls) => `
+        <button onclick="${onclick}" class="mode-btn w-full flex items-center gap-4 text-left px-4 py-3 rounded-xl border-2 shadow font-bold ${cls}">
+            <span class="text-4xl">${emoji}</span>
+            <span><span class="block text-xl handwritten" style="font-size:1.6rem;line-height:1.1">${title}</span><span class="block text-sm font-normal opacity-80">${desc}</span></span>
+        </button>`;
+
+    function renderMenu() {
+        let saved = null;
+        try { saved = JSON.parse(store.get('lotengo_room') || 'null'); } catch (e) {}
+        const resume = saved && saved.code ? `<button onclick="resumeRoom()" class="mode-btn w-full mb-4 px-4 py-2 rounded-xl border-2 border-dashed border-green-700 bg-green-50 text-green-900 font-bold">▶ Volver a mi sala <span class="tracking-widest">${esc(saved.code)}</span></button>` : '';
+        return card(`${logo()}
+            <p class="mb-5 text-gray-700 italic">Juego de Cartas y Fichas</p>
+            <label for="nick-input" class="block text-left font-bold mb-1">Tu nickname</label>
+            <input id="nick-input" maxlength="12" value="${esc(nick)}" oninput="onNick(this.value)" placeholder="¿Cómo te llamas?" autocomplete="off"
+                class="w-full handwritten text-3xl border-4 border-black rounded-lg px-4 py-2 mb-5 text-center bg-green-50 focus:outline-none focus:bg-white">
+            ${resume}
+            <div class="flex flex-col gap-3">
+                ${modeBtn('menuIA()', '🤖', 'Jugar contra la IA', 'Practica solo, sin conexión', 'bg-black text-white border-black')}
+                ${modeBtn("menuRoom('distancia')", '🌍', 'Jugar a distancia', 'Cada quien en su celular, la app lleva las preguntas', 'bg-green-600 text-white border-green-800')}
+                ${modeBtn("menuRoom('cerca')", '🏠', 'Jugar cerca', 'Juntos en persona: preguntan y responden en voz alta', 'bg-white text-black border-black')}
+            </div>`);
+    }
+    function renderIaLevel() {
+        return card(`${logo()}
+            <p class="mb-5 text-gray-700 italic">Elige la dificultad de la IA</p>
+            <div class="flex flex-col gap-3">
+                ${modeBtn("startIA('facil')", '😊', 'Fácil', 'Pregunta al azar y casi nunca se arriesga', 'bg-green-100 text-green-900 border-green-700')}
+                ${modeBtn("startIA('medio')", '🤔', 'Medio', 'Descarta posibilidades y adivina cuando le quedan pocas', 'bg-yellow-100 text-yellow-900 border-yellow-700')}
+                ${modeBtn("startIA('dificil')", '😈', 'Difícil', 'Hace la pregunta más útil y adivina con seguridad', 'bg-black text-white border-black')}
+            </div>${backBtn('menu')}`);
+    }
+    function renderRoomChoice() {
+        const near = pendingMode === 'cerca';
+        return card(`${logo()}
+            <p class="mb-5 text-gray-700 italic">${near ? '🏠 Jugar cerca' : '🌍 Jugar a distancia'}</p>
+            <div class="flex flex-col gap-3">
+                ${modeBtn('createRoom()', '✨', 'Crear una sala', 'Te damos un código para compartir', 'bg-green-600 text-white border-green-800')}
+                ${modeBtn("go('join')", '🔑', 'Unirme a una sala', 'Escribe el código de tu amigo', 'bg-white text-black border-black')}
+            </div>${backBtn('menu')}`);
+    }
+    function renderJoin() {
+        return card(`${logo()}
+            <p class="mb-4 text-gray-700 italic">Escribe el código de la sala</p>
+            <input id="code-input" maxlength="8" value="${esc(joinCode)}" oninput="onJoinCode(this)" onkeydown="if(event.key==='Enter')joinRoom()" placeholder="ABCDE" autocomplete="off" autocapitalize="characters"
+                class="w-full handwritten text-5xl border-4 border-black rounded-lg px-4 py-2 mb-5 text-center tracking-widest bg-green-50 focus:outline-none focus:bg-white uppercase">
+            <button onclick="joinRoom()" class="mode-btn w-full px-4 py-3 rounded-xl border-2 border-green-800 bg-green-600 text-white font-bold text-xl handwritten" style="font-size:1.8rem">🚪 Unirme</button>
+            ${backBtn('roomChoice')}`);
+    }
+
+    // ---- Partida
+    function renderGame() {
+        const V = view();
+        if (!V) return `<div class="text-center mt-20"><h2 class="text-2xl animate-pulse">Conectando a la sala...</h2></div>`;
+        if (!V.role) return card(`${logo()}<p class="my-4">No perteneces a esta sala.</p><button onclick="leaveGameNow()" class="px-4 py-2 bg-black text-white rounded font-bold">Volver al menú</button>`);
+
+        const me = V.names[V.role], opp = V.names[other(V.role)];
+        const label = V.mode === 'ia' ? `vs IA · ${{ facil: 'Fácil', medio: 'Medio', dificil: 'Difícil' }[V.level]}` : `Sala ${V.code}`;
+        const histIcon = (V.mode !== 'cerca' && V.p2) ? `
+            <button onclick="openHistory()" title="Ver lo que ha dicho ${esc(opp)}" class="flex items-center gap-2">
+                <span class="w-11 h-11 rounded-full bg-green-600 text-white border-2 border-black font-bold handwritten text-2xl shadow flex items-center justify-center">${V.mode === 'ia' ? 'IA' : esc(opp.charAt(0).toUpperCase())}</span>
+                <span class="hidden sm:inline text-sm font-bold">${esc(opp)}</span></button>` : '';
+        const header = `
+            <div class="flex flex-wrap justify-between items-center gap-3 mb-6 max-w-4xl mx-auto">
+                <div class="flex items-center gap-3">
+                    <div class="font-bold text-lg bg-black text-white px-4 py-1 rounded-full shadow">${esc(me)} · ${esc(label)}</div>${histIcon}
+                </div>
+                <div class="flex gap-2 flex-wrap">
+                    ${V.mode !== 'ia' ? `<button onclick="shareCode()" class="px-3 py-2 bg-white border-2 border-black text-black font-bold rounded shadow hover:bg-gray-100 transition">🔗 Código</button>` : ''}
+                    ${V.dealt ? `<button onclick="newGame()" class="px-3 py-2 bg-green-600 border-2 border-green-800 text-white font-bold rounded shadow hover:bg-green-700 transition">🎲 Nueva</button>` : ''}
+                    <button onclick="leaveGame()" class="px-3 py-2 bg-white border-2 border-black text-black font-bold rounded shadow hover:bg-gray-100 transition">🚪 Salir</button>
+                </div>
+            </div>`;
+
+        if (!V.p2) {
+            return header + card(`${logo()}
+                <h2 class="text-2xl font-bold mb-2">Esperando al otro jugador...</h2>
+                <p class="text-gray-700 mb-3">Dile a tu amigo que elija <b>${V.mode === 'cerca' ? 'Jugar cerca' : 'Jugar a distancia'}</b> → <b>Unirme a una sala</b> y escriba este código:</p>
+                <div class="handwritten text-6xl font-bold tracking-widest bg-green-50 border-4 border-dashed border-green-700 rounded-xl py-3 mb-4">${esc(V.code)}</div>
+                <button onclick="shareCode()" class="px-4 py-3 bg-white text-black rounded-lg shadow hover:bg-gray-100 transition w-full font-bold border-2 border-black">🔗 Compartir código</button>`);
+        }
+        if (!V.dealt) return header + `<div class="text-center mt-20 text-2xl handwritten animate-pulse">Repartiendo cartas y fichas...</div>`;
+
+        const dark = (t) => `<div class="max-w-4xl mx-auto mb-4 text-center bg-gray-800 text-white font-bold rounded-lg py-3 px-4 border-2 border-black shadow">${t}</div>`;
+        const green = (t, extra) => `<div class="max-w-4xl mx-auto mb-4 text-center bg-green-600 text-white font-bold rounded-lg py-3 px-4 border-2 border-green-800 shadow flex flex-col sm:flex-row items-center justify-center gap-3"><span>${t}</span>${extra || ''}</div>`;
+        let banner;
+        const myTurn = canAct(V);
+        if (V.phase === 'over') banner = dark('🏁 Partida terminada');
+        else if (V.phase === 'lastchance') banner = V.lastFor === V.role
+            ? green(`🔥 ¡Última oportunidad! ${esc(opp)} ya adivinó tu código: adivina el suyo para empatar`)
+            : dark(`⏳ ${esc(opp)} tiene su última oportunidad de adivinar tu código...`);
+        else if (V.guess) banner = V.guess.by === V.role ? dark(`⏳ ${esc(opp)} está revisando tu código...`) : dark(`🔎 Revisando el código de ${esc(opp)}...`);
+        else if (V.pending) banner = V.pending.by === V.role ? dark(`⏳ Esperando la respuesta de ${esc(opp)}...`) : green(`✍️ ${esc(opp)} te hizo una pregunta: respóndela`);
+        else if (myTurn) banner = green(`🟢 Es tu turno, ${esc(me)}: ${V.mode === 'cerca' ? 'elige una carta o intenta adivinar el código en persona' : 'elige una carta o toca «Adivinar código»'}`,
+            V.mode === 'cerca' ? `<button onclick="passTurn()" class="px-3 py-1 bg-white text-black rounded border-2 border-black shadow hover:bg-gray-100 transition">⏭ Pasar turno (fallé al adivinar)</button>` : '');
+        else banner = dark(V.mode === 'ia' ? '🤖 La IA está pensando...' : `⏳ Turno de ${esc(opp)}... espera a que termine`);
+
+        const guessBtn = canGuess(V) ? `<div class="text-center mt-6"><button onclick="openGuess()" class="mode-btn px-6 py-3 bg-black text-white rounded-xl border-4 border-green-700 shadow-lg font-bold handwritten" style="font-size:2rem">🔍 Adivinar código</button></div>` : '';
+
+        return header + banner + renderBoard(V, myTurn) + guessBtn + '<div class="my-8"></div>' + renderTiles(V);
+    }
+
+    function renderBoard(V, active) {
+        const tapes = ['tape-green', 'tape-black', 'tape-white', 'tape-white', 'tape-green', 'tape-black'];
+        const rotations = ['-rotate-2', 'rotate-2', '-rotate-1', 'rotate-1', 'rotate-3', '-rotate-3'];
+        const anim = pendingAnim;
+        pendingAnim = null;
+        const cards = V.board.map((id, idx) => {
+            const changed = anim && Object.prototype.hasOwnProperty.call(anim, idx);
+            const ghost = changed ? `
+                <div class="scrap-card card-ghost absolute inset-0 p-4 sm:p-6 flex items-center justify-center text-center rounded ${rotations[idx]}">
+                    <div class="tape ${tapes[idx]}"></div>
+                    <p class="handwritten text-xl sm:text-2xl leading-tight text-gray-900 font-bold">${esc(cardText(anim[idx]))}</p>
+                </div>` : '';
+            return `
+            <div class="relative">
+                <div onclick="openCard(${idx})" class="scrap-card ${active ? '' : 'card-locked'} ${changed ? 'card-new' : ''} p-4 sm:p-6 flex items-center justify-center text-center aspect-[4/3] rounded ${rotations[idx]}">
+                    <div class="tape ${tapes[idx]}"></div>
+                    <p class="handwritten text-xl sm:text-2xl leading-tight text-gray-900 font-bold">${esc(cardText(id))}</p>
+                </div>${ghost}
+            </div>`;
+        }).join('');
+        return `
+            <div class="bg-green-900 p-4 sm:p-8 rounded-xl shadow-2xl relative max-w-4xl mx-auto border-8 border-black">
+                <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 2px, transparent 2px); background-size: 15px 15px;"></div>
+                <h1 class="text-3xl sm:text-4xl text-center text-white font-bold mb-8 relative z-10 drop-shadow-md handwritten">Cartas de Preguntas</h1>
+                <div class="grid grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">${cards}</div>
+                <p class="text-green-200 text-center mt-6 opacity-90 text-sm font-bold bg-black bg-opacity-40 inline-block px-4 py-1 rounded-full mx-auto block w-fit">
+                    ${active ? '* Toca una carta para leerla y usarla' : '* Espera tu turno para usar una carta'}
+                </p>
+            </div>`;
+    }
+
+    function renderTiles(V) {
+        const tiles = V.myTiles;
+        if (!tiles || tiles.length === 0) return `<div class="text-center mt-20 text-2xl handwritten animate-pulse">Cargando tus fichas...</div>`;
+        const t = tiles.map((x, i) => `
+            <div class="flex flex-col items-center gap-3">
+                <div class="w-16 h-20 sm:w-24 sm:h-32 rounded-lg flex items-center justify-center shadow-xl text-4xl sm:text-5xl font-bold tile-${x.color}">${x.num}</div>
+                <div class="bg-white px-4 py-1 rounded-md text-2xl font-bold handwritten border-2 border-black shadow">${LETTERS[i]}</div>
+            </div>`).join('');
+        return `
+            <div class="bg-white p-6 sm:p-12 rounded-xl max-w-3xl mx-auto shadow-2xl relative border-4 border-double border-green-800 mt-10">
+                <div class="tape tape-black top-[-15px]"></div>
+                <h2 class="text-3xl font-bold mb-2 text-center text-green-900">Tus Fichas Ocultas</h2>
+                <p class="text-center mb-10 text-gray-500 font-semibold">Solo tú las ves · Ordenadas de menor a mayor (Negro antes que blanco)</p>
+                <div class="flex justify-center gap-3 sm:gap-8 flex-wrap">${t}</div>
+            </div>`;
+    }
+
+    function render(force) {
+        const V = view();
+        const sig = JSON.stringify([screen, session && session.kind, V && { ...V, aiTiles: undefined }, netBusy, store.get('lotengo_room'), !!popupNow]);
+        if (!force && sig === lastSig) return;
+        lastSig = sig;
+        const app = $('app');
+        if (!app) return;
+        if (screen === 'menu') app.innerHTML = renderMenu();
+        else if (screen === 'iaLevel') app.innerHTML = renderIaLevel();
+        else if (screen === 'roomChoice') app.innerHTML = renderRoomChoice();
+        else if (screen === 'join') app.innerHTML = renderJoin();
+        else app.innerHTML = renderGame();
+    }
+
+    render(true);
+
+</script>
+</body>
+</html>
